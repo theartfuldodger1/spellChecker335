@@ -70,27 +70,27 @@ void mySwitch (set<string> dictionarySet)
 			{
 			case 1: //Add Instruction File
 			{
-				param = menu1A();
+				//param = menu1A();
 			}
 			break;
 			case 2: //Add Instruction Line By Line
 			{
-				param = menu1B();
+				//param = menu1B();
 			}
 			break;
 			case 3: //Display Empty Registers
 			{
-				MyCache.printRegisters();
+				//MyCache.printRegisters();
 			}
 			break;
 			case 4: //Display Instructions
 			{
-				printInstructions();//no stepping
+				//printInstructions();//no stepping
 			}
 			break;
 			case 5: //Display Empty Memory
 			{
-				MyMemory.printMemory();
+				//MyMemory.printMemory();
 			}
 			break;
 			case 6: //Help
@@ -108,11 +108,11 @@ void mySwitch (set<string> dictionarySet)
 				//bitset<16> comp("0100010000000000");
 				//CMP(comp);
 				//cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
-				bitset<16> load_val("0000000000001010");
-				int load_v;
+			//bitset<16> load_val("0000000000001010");
+			//int load_v;
 				//bitset<16> comp_val("0100010000000000");
 				//bitset<16> head("");
-				while (MyCache.get_ZF() != 1) {
+				/*while (MyCache.get_ZF() != 1) {
 					MyCache.setGeneralPurposeRegisters_GPRs(0, load_val);
 					CMP(MyCache.getIndexRegister_X0());
 					load_v = load_val.to_ulong();
@@ -122,8 +122,8 @@ void mySwitch (set<string> dictionarySet)
 					bitset<16> temp(load_v);
 					load_val = temp;
 					cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
-				}
-
+				}*/
+				
 				//cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
 				//JGE();
 			}
