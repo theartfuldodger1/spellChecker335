@@ -8,7 +8,7 @@ using namespace std;
 #include <set>
 #include <iomanip>
 
-void mySwitch(set<string> dictionarySet);
+void mySwitch();
 void createDictionary(ifstream &inFile, set <string> &dictionarySet);
 string fileIterator(istream &input, char delim);
 int scrollChars(istream &instructionFile);
@@ -20,25 +20,25 @@ set<string> dictionarySet;
 
 int main()
 {
-	
+	mySwitch();
+
 	return 0;
 }
 
 void initializationMenu()
 {
 	cout << right;
-	cout << setw(45) << setfill(' ') << "Initialization Menu"
+	cout << setw(45) << setfill(' ') << "Spell Check Project"
 		<< "\n\t----------------------------------------------------"
-		<< "\n\t1. Add dictionary file"
-		<< "\n\t2. Use default dictionary"
-		<< "\n\t3. Add text file to check"
-		<< "\n\t4. Use default text file"
-		<< "\n\t5. Use only default files"
-		<< "\n\t6. Quit"
+		<< "\n\t1. Use only default files"
+		<< "\n\t2. Add a new dictionary file"
+		<< "\n\t3. Add a new text file to check"
+		<< "\n\t4. Add both"
+		<< "\n\t5. Quit"
 		<< "\n\n\t==>> ";
 }
 
-void mySwitch (set<string> dictionarySet)
+void mySwitch ()
 {
 	unsigned short int param = 0;
 	bool check = 0;
@@ -68,75 +68,34 @@ void mySwitch (set<string> dictionarySet)
 		if (param > 0 || param < 9)
 			switch (param)
 			{
-			case 1: //Add Instruction File
-			{
-				//param = menu1A();
-			}
-			break;
-			case 2: //Add Instruction Line By Line
-			{
-				//param = menu1B();
-			}
-			break;
-			case 3: //Display Empty Registers
-			{
-				//MyCache.printRegisters();
-			}
-			break;
-			case 4: //Display Instructions
-			{
-				//printInstructions();//no stepping
-			}
-			break;
-			case 5: //Display Empty Memory
-			{
-				//MyMemory.printMemory();
-			}
-			break;
-			case 6: //Help
-			{
-				//call help file needed
-				cout << "\t\nHelp File incomplete..." << endl;
-				//bitset<16> tt("0000010011010111");
-				//LDR(tt);
-				//bitset<16> aa = MyCache.getGeneralPurposeRegisters_GPRs(3);
-				//STR(aa);
-				//bitset<16> dd("1010010000001001");
-				//LDX(dd);
-				//bitset<16> xx("1010100000110010");
-				//STX(xx);
-				//bitset<16> comp("0100010000000000");
-				//CMP(comp);
-				//cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
-			//bitset<16> load_val("0000000000001010");
-			//int load_v;
-				//bitset<16> comp_val("0100010000000000");
-				//bitset<16> head("");
-				/*while (MyCache.get_ZF() != 1) {
-					MyCache.setGeneralPurposeRegisters_GPRs(0, load_val);
-					CMP(MyCache.getIndexRegister_X0());
-					load_v = load_val.to_ulong();
-					load_v--;
-					cout << MyCache.getIndexRegister_X0().to_ulong() << endl;
-					cout << load_v << endl;
-					bitset<16> temp(load_v);
-					load_val = temp;
-					cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
-				}*/
+				case 1: //
+				{
+					menu1A();
+				}
+				break;
+				case 2: //
+				{
 				
-				//cout << "ZF: " << MyCache.get_ZF() << " CF: " << MyCache.get_CF() << " SF: " << MyCache.get_SF() << endl;
-				//JGE();
-			}
-			break;
-			case 7: //Quit
-			{
-				//exit
-				cout << "Bye!" << endl;
-			}
-			break;
-			}
-	} while (param != 7);
+				}
+				break;
+				case 3: //
+				{
 
+				}
+				break;
+				case 4: //
+				{
+				
+				}
+				break;
+				case 5: //Quit
+				{
+					//exit
+					cout << "Bye!" << endl;
+				}
+				break;
+			}
+	} while (param != 5);
 }
 
 //add dictionary file from Menu1, choice 1
@@ -157,10 +116,12 @@ void menu1A()
 		cin >> fileIn;
 		dictionaryFile.open(fileIn);
 
+		if (fileIn == "q" || fileIn == "Q")
+			return;
 		if (!dictionaryFile.is_open())
 			cerr << "\n\tCould not open file\n\n";
 
-
+		cout << "stuck?\n";
 	} while (!dictionaryFile.is_open());
 
 	createDictionary(dictionaryFile, dictionarySet);
@@ -172,8 +133,10 @@ void createDictionary(ifstream &inFile, set <string> &dictionarySet)
 
 	while (!inFile.eof())
 	{
+		cout << "big arse file?\n";
 		//Acquire words from file - BEGIN
-		string newWord = inFile.getline;
+		char newWord[256];
+		inFile.get(newWord, 256);
 		dictionarySet.emplace(newWord);
 		//Acquire words from file - END
 	}
