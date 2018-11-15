@@ -133,7 +133,7 @@ void createDictionary(ifstream &inFile, set <string> &dictionarySet)
 
 	while (!inFile.eof())
 	{
-		cout << "big arse file?\n";
+		cout << "big arse file? wordCount: " << wordCount << "\n";
 		//Acquire words from file - BEGIN
 		char newWord[256];
 		inFile.get(newWord, 256);
