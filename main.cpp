@@ -6,17 +6,33 @@ using namespace std;
 #include <fstream>
 #include <string>
 #include <set>
+#include <unordered_set>
 #include <iomanip>
+#include <vector>
+#include <list>
 
 void mySwitch();
 void createDictionary(ifstream &inFile, set <string> &dictionarySet);
+void createcheckFileVector(ifstream &inFile, vector <string> &checkFileVector);
 string fileIterator(istream &input, char delim);
 int scrollChars(istream &instructionFile);
 int scrollWhiteSpace(istream &cin);
 void initializationMenu();
 void menu1A();
+void menu2A();
+bool basicSearch1(string wordIn); 
+bool basicSearch2(string wordIn);
+bool secondarySearch1(string wordIn, string possibleCorrects);
+bool secondarySearch2(string wordIn, string possibleCorrects);
+
+void runSearches();
+
+void termSplitter(string lineIn, string &term1, string &term2, string &term3, int &multiterm);
 
 set<string> dictionarySet;
+unordered_set<string> dictionarySet2;
+vector<string> checkFileVector;
+list<string> incorrectWords;
 
 int main()
 {
@@ -68,24 +84,56 @@ void mySwitch ()
 		if (param > 0 || param < 9)
 			switch (param)
 			{
-				case 1: //
+				case 1: //Use only default files
 				{
-					menu1A();
+					dictionarySet.clear();
+					dictionarySet2.clear();
+					checkFileVector.clear();
+
+					ifstream dictionaryFile;
+					dictionaryFile.open("dictionary.txt");
+					createDictionary(dictionaryFile, dictionarySet);
+
+					ifstream checkFile;
+					checkFile.open("check_it.txt");
+					createcheckFileVector(checkFile, checkFileVector);
 				}
 				break;
-				case 2: //
+				case 2: //Add a new dictionary file but use default file to check
 				{
-				
-				}
-				break;
-				case 3: //
-				{
+					dictionarySet.clear();
+					dictionarySet2.clear();
+					checkFileVector.clear();
+
+					menu1A();//Add a new dictionary
+
+					ifstream checkFile;
+					checkFile.open("check_it.txt");
+					createcheckFileVector(checkFile, checkFileVector);
 
 				}
 				break;
-				case 4: //
+				case 3: //Add a new text file to check but use default dictionary
 				{
-				
+					dictionarySet.clear();
+					dictionarySet2.clear();
+					checkFileVector.clear();
+
+					menu2A();//Add a new text file 
+
+					ifstream dictionaryFile;
+					dictionaryFile.open("dictionary.txt");
+					createDictionary(dictionaryFile, dictionarySet);
+				}
+				break;
+				case 4: //Add both a custom dictionary and a file to check
+				{
+					dictionarySet.clear();
+					dictionarySet2.clear();
+					checkFileVector.clear();
+
+					menu1A();//Add a new dictionary 
+					menu2A();//Add a new text file 
 				}
 				break;
 				case 5: //Quit
@@ -96,6 +144,69 @@ void mySwitch ()
 				break;
 			}
 	} while (param != 5);
+}
+void runSearches()
+{
+	bool strike = 0;
+	string error;
+	string possibleCorrects;
+
+	//ORDERED search BEGIN
+	for (int i = 0; i < checkFileVector.size(); i++)
+	{
+		strike = basicSearch1(checkFileVector[i]);
+		if (strike == 0)
+		{
+			error = checkFileVector[i];
+			strike = secondarySearch1(checkFileVector[i], possibleCorrects);
+			if (strike == 0)
+			{
+				error += " = No matches found";
+				incorrectWords.push_back(error);
+			}
+			else
+			{
+				error += " = " + possibleCorrects;
+				incorrectWords.push_back(error);
+			}
+		}	
+	}
+	//ORDERED search END
+}
+
+//searcing ORDERED set. returns 1 if word is found in dictionary, else returns 0;
+bool basicSearch1(string wordIn)
+{
+	if (dictionarySet.find(wordIn) != dictionarySet.end())
+		return 1;
+
+	return 0;
+}
+//searcing ORDERED set. follows basicSearch() if word is not found. searches in parts 
+//returns 1 if word is found in dictionary, else returns 0;
+bool secondarySearch1(string wordIn, string possibleCorrects)
+{
+	set<string>::iterator iter = dictionarySet.begin();
+	while (iter != dictionarySet.end())
+	{
+
+		dictionarySet.begin();
+	}
+}
+
+//searcing UNORDERED set. returns 1 if word is found in dictionary, else returns 0;
+bool basicSearch2(string wordIn)
+{
+	if (dictionarySet2.find(wordIn) != dictionarySet2.end())
+		return 1;
+
+	return 0;
+}
+//searcing UNORDERED set. follows basicSearch() if word is not found. searches in parts 
+//returns 1 if word is found in dictionary, else returns 0;
+bool secondarySearch2(string wordIn, string possibleCorrects)
+{
+
 }
 
 //add dictionary file from Menu1, choice 1
@@ -110,7 +221,7 @@ void menu1A()
 		cout << right;
 		cout << setw(45) << "Add a Dictionary File"
 			<< "\n\t---------------------------------------------------"
-			<< "\n\tPlease ensure usage of proper case."
+			<< "\n\tPlease ensure usage of proper case. Enter Q to quit"
 			<< "\n\n\t==>> ";
 
 		cin >> fileIn;
@@ -121,24 +232,166 @@ void menu1A()
 		if (!dictionaryFile.is_open())
 			cerr << "\n\tCould not open file\n\n";
 
-		cout << "stuck?\n";
 	} while (!dictionaryFile.is_open());
 
 	createDictionary(dictionaryFile, dictionarySet);
 }
 
+void menu2A()
+{
+	string fileIn;
+	ifstream checkFile;
+	bool fileFail = 1;
+
+	do
+	{
+		cout << right;
+		cout << setw(45) << "Add a File to Check"
+			<< "\n\t---------------------------------------------------"
+			<< "\n\tPlease ensure usage of proper case. Enter Q to quit"
+			<< "\n\n\t==>> ";
+
+		cin >> fileIn;
+		checkFile.open(fileIn);
+
+		if (fileIn == "q" || fileIn == "Q")
+			return;
+		if (!checkFile.is_open())
+			cerr << "\n\tCould not open file\n\n";
+
+	} while (!checkFile.is_open());
+
+	createcheckFileVector(checkFile, checkFileVector);
+}
+
 void createDictionary(ifstream &inFile, set <string> &dictionarySet)
 {
 	int wordCount = 0;
+	string newWord = "I don't count...";
+	char delim = '\n';
 
 	while (!inFile.eof())
 	{
-		cout << "big arse file? wordCount: " << wordCount << "\n";
+		cout << "big arse file? wordCount: " << wordCount << " " << newWord << "\n";
 		//Acquire words from file - BEGIN
-		char newWord[256];
-		inFile.get(newWord, 256);
+		newWord = fileIterator(inFile, delim);
 		dictionarySet.emplace(newWord);
+		dictionarySet2.emplace(newWord);
 		//Acquire words from file - END
+		wordCount++;
+	}
+}
+
+void createcheckFileVector(ifstream &inFile, vector <string> &vector)
+{
+	int wordCount = 0;
+	string newWord = "first";
+	char delim = ' ';
+	string term1, term2, term3;
+	int multiterm = 0;
+
+	while (!inFile.eof())
+	{
+		//Acquire words from file - BEGIN
+		newWord = fileIterator(inFile, delim);
+		termSplitter(newWord, term1, term2, term3, multiterm);
+
+		newWord = term1;
+		checkFileVector.push_back(newWord);
+		wordCount++;
+//		cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
+		if (multiterm == 2)
+		{
+			newWord = term2;
+			checkFileVector.push_back(newWord);
+			wordCount++;
+//			cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
+		}
+		if (multiterm == 3)
+		{
+			newWord = term3;
+			checkFileVector.push_back(newWord);
+			wordCount++;
+		//	cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
+		}
+		//checkFileVector.push_back(newWord);
+		//Acquire words from file - END
+	}
+}
+
+//Splits strings with multiple words into seperate strings, makes all lower case and removes hyphen. Returns clean strings and a value
+//reflecting the number of terms returned
+void termSplitter(string lineIn, string &term1, string &term2, string &term3, int &multiterm)
+{
+	string newWord;
+	string temp;
+	term1.clear();
+	term2.clear();
+	term3.clear();
+
+	multiterm  = 0;
+	unsigned int i = 0;
+	while (i < lineIn.size())
+	{
+		term1 += lineIn[i];
+		multiterm = 1;
+		i++;
+		temp = lineIn[i];
+		//cout << "Temp: " << temp << endl;
+		if (temp == "," || temp == "'" || temp == ".")
+		{
+			if (temp == "'")
+				i++;
+			
+			i++;
+		//	cout << "punctuation caught1 " << temp << "*" << endl;
+			temp = lineIn[i];
+			//cout << "punctuation caught1 " << temp << "*" << endl;
+		}
+
+		if (temp == " " || temp == "-")//remove hyphens
+		{
+			multiterm = 2;
+			i++;
+			while (i < lineIn.size())
+			{
+				term2 += lineIn[i];
+				i++;
+				temp = lineIn[i];
+				if (temp == "," || temp == "'" || temp == ".")
+				{
+					if (temp == "'")
+						i++;
+					i++;
+					//cout << "punctuation caught2 " << temp << "*" << endl;
+					temp = lineIn[i];
+					//cout << "punctuation caught2 " << temp << "*" << endl;
+				}
+				
+				if (temp == " " || temp == "-")
+				{
+					multiterm = 3;
+					i++;
+					while (i < lineIn.size())
+					{
+						term3 += lineIn[i];
+						//lineIn[i] = ' ';
+						i++;
+						temp = lineIn[i];
+						if (temp == "," || temp == "'" || temp == ".")
+						{
+							
+							i++;
+							if (temp == "'")
+								i++;
+							//cout << "punctuation caught3 " << temp << "*" << endl;
+							temp = lineIn[i];
+						//	cout << "punctuation caught3 " << temp << "*" << endl;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
