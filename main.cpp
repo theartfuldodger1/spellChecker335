@@ -26,6 +26,10 @@ bool secondarySearch1(string wordIn, string possibleCorrects);
 bool secondarySearch2(string wordIn, string possibleCorrects);
 
 void runSearches();
+void searchResults();
+
+string toLowerCase(const string &wordIn);
+void voidLowerCase(string &wordIn);
 
 void termSplitter(string lineIn, string &term1, string &term2, string &term3, int &multiterm);
 
@@ -97,6 +101,8 @@ void mySwitch ()
 					ifstream checkFile;
 					checkFile.open("check_it.txt");
 					createcheckFileVector(checkFile, checkFileVector);
+					runSearches();
+					searchResults();
 				}
 				break;
 				case 2: //Add a new dictionary file but use default file to check
@@ -145,6 +151,7 @@ void mySwitch ()
 			}
 	} while (param != 5);
 }
+
 void runSearches()
 {
 	bool strike = 0;
@@ -174,6 +181,17 @@ void runSearches()
 	//ORDERED search END
 }
 
+void searchResults()
+{
+	list<string>::iterator iter = incorrectWords.begin();
+	while (iter != incorrectWords.end())
+	{
+		cout << "Word problems!\n"
+			<<"\t\tincorrectWords: " << *iter << endl;
+		iter++;
+	}
+}
+
 //searcing ORDERED set. returns 1 if word is found in dictionary, else returns 0;
 bool basicSearch1(string wordIn)
 {
@@ -186,12 +204,95 @@ bool basicSearch1(string wordIn)
 //returns 1 if word is found in dictionary, else returns 0;
 bool secondarySearch1(string wordIn, string possibleCorrects)
 {
+	int tempSize = 0;
+	int wordInSize = wordIn.size();
+	int matches = 0;
+	int win = 0;
+
+	int strike = 0;
+
+	string temp;
 	set<string>::iterator iter = dictionarySet.begin();
+
 	while (iter != dictionarySet.end())
 	{
+		temp = *iter;
+		tempSize = temp.size();
+		if (wordInSize == tempSize || wordInSize == (tempSize + 1) || wordInSize == (tempSize - 1))
+		{
+			if (wordInSize == tempSize)//Same size
+			{
+				for (int i = 0; i < wordInSize; i++)
+				{
+					if(wordIn[i] != temp[i])
+					/*	matches++;
+					else	*/
+						strike++;
+					else
+						matches++;
 
-		dictionarySet.begin();
+					if (strike >= 2)
+						break;
+					cout << "wordIn " << wordIn << " temp " << temp << " strikes: " << strike << endl;
+				}
+				if (strike = 1)
+				{
+					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+						possibleCorrects += temp;
+						win++;
+				}
+
+			}
+			else if (wordInSize > tempSize)//wordIn bigger
+			{
+				for (int i = 0; i < tempSize; i++)
+				{
+					if (wordIn[i] != temp[i])
+					/*	matches++;
+					else	*/
+						strike++;
+					else
+						matches++;
+					if (strike >= 2)
+						break;
+				}
+				if (strike = 1)
+				{
+					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+						possibleCorrects += temp;
+						win++;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < tempSize; i++)//found word bigger
+				{
+					for (int i = 0; i < wordInSize; i++)
+					{
+						if (wordIn[i] != temp[i])
+						/*	matches++;
+						else	*/
+							strike++;
+						else
+							matches++;
+						if (strike >= 2)
+							break;
+					}
+					if (strike = 1)
+					{
+						//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+						possibleCorrects += temp;
+						win++;
+					}
+
+				}
+			}
+		}
+		iter++;
 	}
+	if (win ==  0)
+		return 0;
+	return 1;
 }
 
 //searcing UNORDERED set. returns 1 if word is found in dictionary, else returns 0;
@@ -206,7 +307,74 @@ bool basicSearch2(string wordIn)
 //returns 1 if word is found in dictionary, else returns 0;
 bool secondarySearch2(string wordIn, string possibleCorrects)
 {
+	int tempSize = 0;
+	int wordInSize = wordIn.size();
+	int matches = 0;
 
+	int strike = 0;
+
+	string temp;
+	unordered_set<string>::iterator iter = dictionarySet2.begin();
+
+	while (iter != dictionarySet2.end())
+	{
+		temp = *iter;
+		tempSize = temp.size();
+		if (wordInSize == tempSize || wordInSize == (tempSize + 1) || wordInSize == (tempSize - 1))
+		{
+			if (wordInSize == tempSize)//sae size
+			{
+				for (int i = 0; i < wordInSize; i++)
+				{
+					if (wordIn[i] == temp[i])
+						/*	matches++;
+						else	*/
+						strike++;
+
+					if (strike >= 2)
+						return 0;
+				}
+				if (strike = 1)
+					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+					possibleCorrects += temp;
+			}
+			else if (wordInSize > tempSize)//wordIn bigger
+			{
+				for (int i = 0; i < tempSize; i++)
+				{
+					if (wordIn[i] != temp[i])
+						/*	matches++;
+						else	*/
+						strike++;
+					if (strike >= 2)
+						return 0;
+				}
+				if (strike = 1)
+					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+					possibleCorrects += temp;
+			}
+			else
+			{
+				for (int i = 0; i < tempSize; i++)//found word bigger
+				{
+					for (int i = 0; i < wordInSize; i++)
+					{
+						if (wordIn[i] == temp[i])
+							/*	matches++;
+							else	*/
+							strike++;
+						if (strike >= 2)
+							return 0;
+					}
+					if (strike = 1)
+						//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
+						possibleCorrects += temp;
+				}
+			}
+		}
+		iter++;
+	}
+	return 1;
 }
 
 //add dictionary file from Menu1, choice 1
@@ -297,12 +465,14 @@ void createcheckFileVector(ifstream &inFile, vector <string> &vector)
 		termSplitter(newWord, term1, term2, term3, multiterm);
 
 		newWord = term1;
+		voidLowerCase(newWord);
 		checkFileVector.push_back(newWord);
 		wordCount++;
 //		cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
 		if (multiterm == 2)
 		{
 			newWord = term2;
+			voidLowerCase(newWord);
 			checkFileVector.push_back(newWord);
 			wordCount++;
 //			cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
@@ -310,6 +480,7 @@ void createcheckFileVector(ifstream &inFile, vector <string> &vector)
 		if (multiterm == 3)
 		{
 			newWord = term3;
+			voidLowerCase(newWord);
 			checkFileVector.push_back(newWord);
 			wordCount++;
 		//	cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
@@ -446,4 +617,40 @@ int scrollWhiteSpace(istream &cin)
 		temp = cin.peek();
 	}
 	return temp;
+}
+
+//iterates through string input and modifies strings upper case letters to lower case if needed
+//Precondition: Valid string of letters
+//Postcondition: Returns string with only lower case letters
+string toLowerCase(const string &wordIn)
+{
+	string word_temp = wordIn;
+
+	for (int i = 0; i < word_temp.length(); i++)
+	{
+		if (word_temp[i] == 45)
+			word_temp[i] = ' ';
+		else
+		{
+			if ((word_temp[i] >= 'A') && (word_temp[i] <= 'Z')) //looks for upper case
+				word_temp[i] = (char)((int)word_temp[i] + 32); //modifies accordingly by replacement
+		}
+	}
+	return word_temp;
+}
+//iterates through string input and modifies strings upper case letters to lower case if needed
+//Precondition: Valid string of letters
+//Postcondition: Returns string with only lower case letters
+void voidLowerCase(string &wordIn)
+{
+	for (unsigned int i = 0; i < wordIn.length(); i++)
+	{
+		if (wordIn[i] == 45)
+			wordIn[i] = ' ';
+		else
+		{
+			if ((wordIn[i] >= 'A') && (wordIn[i] <= 'Z')) //looks for upper case
+				wordIn[i] = (char)((int)wordIn[i] + 32); //modifies accordingly by replacement
+		}
+	}
 }
