@@ -7,7 +7,7 @@ Assignment 03
 This program accepts two command line argument, a plain text file with text to check and a plain text file dictionary.
 The program checks the check file against the dictionary and provides possible corrections. The dictionary is
 stored in a ordered set and an unordered set. The two sets are utilized seperately and both are timed for completion
-and compared.
+and compared. Incorrect words and suggestions are printed to console and to a file called progOutput
 Using C++11
 Compile with g++ -o out main.cpp -std=c++11
 Execute with::  out check_it.txt dictionary.txt or out <text_file> <text_file>
@@ -307,7 +307,7 @@ void runSearchesUnordered()
 void searchResults()
 {
 	ofstream outfile;
-	outfile.open("progOutput.txt");
+	outfile.open("progOutput");
 	set<string>::iterator iter = checkOutcome.begin();
 	while (iter != checkOutcome.end())
 	{
