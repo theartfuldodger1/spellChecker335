@@ -57,7 +57,7 @@ set<string> checkOutcome;
 
 int main(int argc, char* argv[])
 {
-/*
+
 	//for command line execution
 	if (argc != 3)//for attempted launch w/o param
 	{
@@ -73,8 +73,8 @@ int main(int argc, char* argv[])
 		cerr << "\n\tCould not open file\n\ns";
 		return 1;
 	}
-*/
 
+/*
 	//for IDE execution
 	///////////////////////////////////
 	cout << "Starting..." << endl;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	//checkFile.open("test1.txt");
 	checkFile.open("check_it.txt");
 	///////////////////////////////////
-
+*/
 	createDictionary(dictionaryFile, dictionarySet);
 	createcheckFileVector(checkFile, checkFileVector);
 	dictionaryFile.close();
