@@ -163,7 +163,7 @@ void mySwitch ()
 					checkFile.close();
 					
 					runSearchesOrdered();
-					runSearchesUnordered();
+				//	runSearchesUnordered();
 					searchResults();
 				}
 				break;
@@ -389,15 +389,6 @@ bool secondarySearch1(string wordIn)
 							}
 							else if (wordIn[i] == temp[j + 1] && wordIn[i + 1] == temp[j])//special
 							{
-							/*
-								if (wordIn[i] == temp[j + 1] && wordIn[i] == temp[j])
-								{
-									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
-
-									strike++;
-								}
-								else
-								*/
 								{
 									i++;
 									i++;
@@ -504,6 +495,14 @@ bool secondarySearch1(string wordIn)
 								strike++;
 							}
 						}
+
+						if (wordInSize == 3 && matches == 2 && tempSize == 4 || tempSize == 5)
+						{
+							strike++;
+							param == 4;
+							breakOut == 0;
+							break;
+						}
 						if (strike >= 2)
 						{
 							cout << "if (strike >= 2)" << endl;
@@ -512,6 +511,8 @@ bool secondarySearch1(string wordIn)
 							break;
 						}
 						cout << "OUT OF FOR, Strikes: " << strike << endl;
+
+						
 					}
 					break;
 					case 2://wordIn bigger
@@ -710,9 +711,13 @@ bool secondarySearch1(string wordIn)
 								matches++;
 								i++;
 								//i++;
+								//////////
+								i++;
+								j++;
+								/////////
 								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
-								//breakOut = 1;
-								//param = 3
+								breakOut = 1;
+								param = 1;
 								break;
 							}
 							else if (wordIn[i] == temp[j + 1])//wordIn is now same size
@@ -775,14 +780,22 @@ bool secondarySearch1(string wordIn)
 							}
 						}
 						if (strike >= 2)
-							{
-								cout << "if (strike >= 2)" << endl;
-								param = 4;
-								breakOut = 0;
-								break;
-							}
+						{
+							cout << "if (strike >= 2)" << endl;
+							param = 4;
+							breakOut = 0;
+							break;
+						}
 						cout << "OUT OF FOR, Strikes: " << strike << endl;
 					}
+					break;
+				}
+
+				if (wordInSize == 3 && matches == 2 && tempSize == 4 || tempSize == 5)
+				{
+					strike++;
+					param == 4;
+					breakOut == 0;
 					break;
 				}
 				if (i == wordInSize || j == tempSize)
