@@ -225,7 +225,7 @@ void mySwitch ()
 				case 5: //Quit
 				{
 					//exit
-					cout << "Bye!" << endl;
+					cout << "\tBye!" << endl;
 				}
 				break;
 			}
