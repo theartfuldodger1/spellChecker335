@@ -1,7 +1,11 @@
 ﻿  main.cpp
-c:\users\brickr\source\repos\spellchecker335\main.cpp(502): warning C4553: '==': operator has no effect; did you intend '='?
-c:\users\brickr\source\repos\spellchecker335\main.cpp(503): warning C4553: '==': operator has no effect; did you intend '='?
-c:\users\brickr\source\repos\spellchecker335\main.cpp(797): warning C4553: '==': operator has no effect; did you intend '='?
-c:\users\brickr\source\repos\spellchecker335\main.cpp(798): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(480): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(481): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(681): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(682): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(869): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(870): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(1070): warning C4553: '==': operator has no effect; did you intend '='?
+c:\users\brickr\source\repos\spellchecker335\main.cpp(1071): warning C4553: '==': operator has no effect; did you intend '='?
   spellChecker.vcxproj -> C:\Users\brickr\Source\Repos\spellChecker335\x64\Debug\spellChecker.exe
   spellChecker.vcxproj -> C:\Users\brickr\Source\Repos\spellChecker335\x64\Debug\spellChecker.pdb (Partial PDB)
