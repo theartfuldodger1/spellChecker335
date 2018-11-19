@@ -1,4 +1,17 @@
-
+/*
+Author: Cordell Hurst
+Course : CSCI 335 Software Design and Analysis III
+Instructor: Pavel Shostak
+Assignment 03
+18 Nov 2018
+This program accepts two command line argument, a plain text file with text to check and a plain text file dictionary.
+The program checks the check file against the dictionary and provides possible corrections. The dictionary is
+stored in a ordered set and an unordered set. The two sets are utilized seperately and both are timed for completion
+and compared.
+Using C++11
+Compile with g++ -o out main.cpp -std=c++11
+Execute with::  out check_it.txt dictionary.txt
+*/
 
 using namespace std;
 
@@ -10,6 +23,7 @@ using namespace std;
 #include <iomanip>
 #include <vector>
 #include <list>
+#include <chrono>
 
 void mySwitch();
 void createDictionary(ifstream &inFile, set <string> &dictionarySet);
@@ -22,10 +36,11 @@ void menu1A();
 void menu2A();
 bool basicSearch1(string wordIn); 
 bool basicSearch2(string wordIn);
-bool secondarySearch1(string wordIn, string possibleCorrects);
-bool secondarySearch2(string wordIn, string possibleCorrects);
+bool secondarySearch1(string wordIn);
+bool secondarySearch2(string wordIn);
 
-void runSearches();
+void runSearchesOrdered();
+void runSearchesUnordered();
 void searchResults();
 
 string toLowerCase(const string &wordIn);
@@ -33,15 +48,58 @@ void voidLowerCase(string &wordIn);
 
 void termSplitter(string lineIn, string &term1, string &term2, string &term3, int &multiterm);
 
+double counter = 0;
 set<string> dictionarySet;
 unordered_set<string> dictionarySet2;
 vector<string> checkFileVector;
-list<string> incorrectWords;
+set<string> incorrectWords;
+set<string> checkOutcome;
 
-int main()
+int main(int argc, char* argv[])
 {
+/*
+	//for command line execution
+	if (argc != 2)//for attempted launch w/o param
+	{
+		cerr << "\n\tUsage: " << argv[0] << " <Filename> <Filename>\n\t\tA filename for a plain text file to check"
+			<< "\n\tand a filename for a plain text dicionary must follow executable.\n\n";
+		return 1;
+	}
+	ifstream checkFile(argv[1]);
+	ifstream dictionaryFile(argv[2]);
+
+	if (!checkFile.is_open() || !dictionaryFile.is_open())
+	{
+		cerr << "\n\tCould not open file\n\ns";
+		return 1;
+	}
+*/
+
+	//for IDE execution
+	///////////////////////////////////
+	/*
+	dictionarySet.clear();
+	dictionarySet2.clear();
+	checkFileVector.clear();
+	*/
+	ifstream dictionaryFile;
+	dictionaryFile.open("dic1.txt");
+	//dictionaryFile.open("dictionary.txt");
+	ifstream checkFile;
+	checkFile.open("test1.txt");
+	//checkFile.open("check_it.txt");
+	///////////////////////////////////
+
+	createDictionary(dictionaryFile, dictionarySet);
+	createcheckFileVector(checkFile, checkFileVector);
+	runSearchesOrdered();
+	//	runSearchesUnordered();
+	searchResults();
+
 	mySwitch();
 
+	dictionaryFile.close();
+	checkFile.close();
 	return 0;
 }
 
@@ -95,13 +153,16 @@ void mySwitch ()
 					checkFileVector.clear();
 
 					ifstream dictionaryFile;
+				//	dictionaryFile.open("dic1.txt");
 					dictionaryFile.open("dictionary.txt");
 					createDictionary(dictionaryFile, dictionarySet);
 
 					ifstream checkFile;
+				//	checkFile.open("test1.txt");
 					checkFile.open("check_it.txt");
 					createcheckFileVector(checkFile, checkFileVector);
-					runSearches();
+					runSearchesOrdered();
+					runSearchesUnordered();
 					searchResults();
 				}
 				break;
@@ -117,6 +178,9 @@ void mySwitch ()
 					checkFile.open("check_it.txt");
 					createcheckFileVector(checkFile, checkFileVector);
 
+					runSearchesOrdered();
+					runSearchesUnordered();
+					searchResults();
 				}
 				break;
 				case 3: //Add a new text file to check but use default dictionary
@@ -130,6 +194,10 @@ void mySwitch ()
 					ifstream dictionaryFile;
 					dictionaryFile.open("dictionary.txt");
 					createDictionary(dictionaryFile, dictionarySet);
+
+					runSearchesOrdered();
+					runSearchesUnordered();
+					searchResults();
 				}
 				break;
 				case 4: //Add both a custom dictionary and a file to check
@@ -140,6 +208,10 @@ void mySwitch ()
 
 					menu1A();//Add a new dictionary 
 					menu2A();//Add a new text file 
+
+					runSearchesOrdered();
+					runSearchesUnordered();
+					searchResults();
 				}
 				break;
 				case 5: //Quit
@@ -152,42 +224,88 @@ void mySwitch ()
 	} while (param != 5);
 }
 
-void runSearches()
+void runSearchesOrdered()
 {
 	bool strike = 0;
-	string error;
-	string possibleCorrects;
-
+	bool runSecondary = 0;
+//	string error;
+	bool found = 0;
+	//string possibleCorrects;
+	cout << "\n\tBegin Ordered:: " << endl;
+	chrono::steady_clock::time_point a1, a2;
+	a1 = chrono::steady_clock::now();
 	//ORDERED search BEGIN
 	for (int i = 0; i < checkFileVector.size(); i++)
 	{
 		strike = basicSearch1(checkFileVector[i]);
-		if (strike == 0)
+		
+		if (strike == 1)
+			runSecondary = 1;
+	//	cout << "runSecondary: " << runSecondary << ", Strike: " << strike << endl;
+	}
+	
+	if (runSecondary == 1)
+	{
+		set<string>::iterator iter = incorrectWords.begin();
+		while (iter != incorrectWords.end())
 		{
-			error = checkFileVector[i];
-			strike = secondarySearch1(checkFileVector[i], possibleCorrects);
-			if (strike == 0)
-			{
-				error += " = No matches found";
-				incorrectWords.push_back(error);
-			}
-			else
-			{
-				error += " = " + possibleCorrects;
-				incorrectWords.push_back(error);
-			}
-		}	
+			//cout << "SecondarySearch -->" << *iter << "<--" << endl;
+			secondarySearch1(*iter);
+			iter++;
+		}
 	}
 	//ORDERED search END
-}
+	a2 = chrono::steady_clock::now();
+	cout << "\n\t" << setw(19) << setfill(' ') << "ORDERED Set Time ==>> "
+		<< chrono::duration_cast<chrono::milliseconds>(a2 - a1).count() << " ms";
 
+	auto AVLTime = chrono::duration_cast<chrono::milliseconds>(a2 - a1).count();
+	cout << "\n\t-----------------------------";
+}
+void runSearchesUnordered()
+{
+	bool strike = 0;
+	bool runSecondary = 0;
+	//	string error;
+	bool found = 0;
+	//string possibleCorrects;
+	cout << "\n\tBegin Unordered:: " << endl;
+	chrono::steady_clock::time_point a1, a2;
+	a1 = chrono::steady_clock::now();
+	//UNORDERED search BEGIN
+	for (int i = 0; i < checkFileVector.size(); i++)
+	{
+		strike = basicSearch1(checkFileVector[i]);
+
+		if (strike == 1)
+			runSecondary = 1;
+	//	cout << "runSecondary: " << runSecondary << ", Strike: " << strike << endl;
+	}
+
+	if (runSecondary == 1)
+	{
+		set<string>::iterator iter = incorrectWords.begin();
+		while (iter != incorrectWords.end())
+		{
+			secondarySearch1(*iter);
+			iter++;
+		}
+	}
+	//UNORDERED search END
+	a2 = chrono::steady_clock::now();
+	cout << "\n\t" << setw(19) << setfill(' ') << "UNORDERED Set Time ==>> "
+		<< chrono::duration_cast<chrono::milliseconds>(a2 - a1).count() << " ms";
+
+	auto AVLTime = chrono::duration_cast<chrono::milliseconds>(a2 - a1).count();
+	cout << "\n\t-----------------------------";
+}
 void searchResults()
 {
-	list<string>::iterator iter = incorrectWords.begin();
-	while (iter != incorrectWords.end())
+	set<string>::iterator iter = checkOutcome.begin();
+	while (iter != checkOutcome.end())
 	{
-		cout << "Word problems!\n"
-			<<"\t\tincorrectWords: " << *iter << endl;
+		cout << "\n\t\tSpelling issues!\n"
+			<<"\t\tcheckOutcome: " << *iter << endl;
 		iter++;
 	}
 }
@@ -195,185 +313,802 @@ void searchResults()
 //searcing ORDERED set. returns 1 if word is found in dictionary, else returns 0;
 bool basicSearch1(string wordIn)
 {
-	if (dictionarySet.find(wordIn) != dictionarySet.end())
+//	cout << "BASIC SEARCH" << endl;
+	if (dictionarySet.find(wordIn) == dictionarySet.end())
+	{
+		incorrectWords.emplace(wordIn);
 		return 1;
-
+	}
 	return 0;
 }
 //searcing ORDERED set. follows basicSearch() if word is not found. searches in parts 
 //returns 1 if word is found in dictionary, else returns 0;
-bool secondarySearch1(string wordIn, string possibleCorrects)
+bool secondarySearch1(string wordIn)
 {
+	bool breakOut = 0;
 	int tempSize = 0;
 	int wordInSize = wordIn.size();
 	int matches = 0;
-	int win = 0;
-
 	int strike = 0;
-
+	int wins = 0;
+	int j = 0;
+	int i = 0;
 	string temp;
-	set<string>::iterator iter = dictionarySet.begin();
+	string possibleCorrects = wordIn;
+	//vector<string>match;
+	unsigned short int param = 0;
 
+	possibleCorrects += " = ";
+	///////////////////////////change for ordered/unordered
+	set<string>::iterator iter = dictionarySet.begin();
+//	cout << "entered secondary" << endl;
 	while (iter != dictionarySet.end())
 	{
+		matches = 0;
+		strike = 0;
 		temp = *iter;
 		tempSize = temp.size();
-		if (wordInSize == tempSize || wordInSize == (tempSize + 1) || wordInSize == (tempSize - 1))
+		if (wordInSize == tempSize || ((wordInSize+1) == tempSize) || ((wordInSize-1) == tempSize))
 		{
-			if (wordInSize == tempSize)//Same size
+			i = 0;
+			j = 0;
+			param = 0;
+			breakOut = 0;
+			cout << "\nStupid top////" << endl;
+			do
 			{
-				for (int i = 0; i < wordInSize; i++)
+				cout << "\nTop of switch -->" << wordIn << "<-- tempWord -->" << temp << "<--" << endl;
+				if (breakOut == 0 && wordInSize == tempSize)//Same size
+					param = 1;
+				if (breakOut == 0 && wordInSize > tempSize)//wordIn bigger
+					param = 2;
+				if (breakOut == 0 && wordInSize < tempSize)//wordIn smaller
+					param = 3;
+				cout << "@ Top of switch -> " << param << ", breakOut: " << breakOut << endl;
+				switch(param)
 				{
-					if(wordIn[i] != temp[i])
-					/*	matches++;
-					else	*/
-						strike++;
-					else
-						matches++;
-
-					if (strike >= 2)
-						break;
-					cout << "wordIn " << wordIn << " temp " << temp << " strikes: " << strike << endl;
-				}
-				if (strike = 1)
-				{
-					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-						possibleCorrects += temp;
-						win++;
-				}
-
-			}
-			else if (wordInSize > tempSize)//wordIn bigger
-			{
-				for (int i = 0; i < tempSize; i++)
-				{
-					if (wordIn[i] != temp[i])
-					/*	matches++;
-					else	*/
-						strike++;
-					else
-						matches++;
-					if (strike >= 2)
-						break;
-				}
-				if (strike = 1)
-				{
-					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-						possibleCorrects += temp;
-						win++;
-				}
-			}
-			else
-			{
-				for (int i = 0; i < tempSize; i++)//found word bigger
-				{
-					for (int i = 0; i < wordInSize; i++)
+					case 1://Same size
 					{
-						if (wordIn[i] != temp[i])
-						/*	matches++;
-						else	*/
-							strike++;
-						else
-							matches++;
+						cout << "Case 111111111111111111111111111111 " << wordIn << " " << temp << endl;
+						cout << "i: " << i << ", J: " << j << endl;
+						for (; i < wordInSize; i++)
+						{
+							cout << "TOP OF FOR wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+							if (wordIn[i] == temp[j])//match!
+							{
+								cout << "if (wordIn[i] == temp[j])//match!" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								matches++;
+								breakOut = 0;
+							}
+							else if (wordIn[i] == temp[j + 1] && wordIn[i + 1] == temp[j])//special
+							{
+							/*
+								if (wordIn[i] == temp[j + 1] && wordIn[i] == temp[j])
+								{
+									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+
+									strike++;
+								}
+								else
+								*/
+								{
+									i++;
+									i++;
+									j++;
+									j++;
+									//j++;
+									//j++;
+									strike++;
+									matches++;
+									matches++;
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+								cout << "SPECIAL:::::::::::::::::::::::::: i: " << i << " " << wordIn[i] << ", j: " << j << temp[j] << " " << ", param: " << param << endl;
+							}
+							else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+							{
+								cout << "else if (wordIn[i + 1] == temp[j])//wordIn is now shorter" << endl;
+								cout << "wordIn[i+1]: " << wordIn[i+1] << ", temp[j]: " << temp[j] << endl;
+								strike++;
+								matches++;
+								i++;
+								//i++;
+								breakOut = 1;
+								param = 3;
+								break;
+							}
+							else if (wordIn[i] == temp[j + 1])//wordIn is now bigger
+							{
+								cout << "else if (wordIn[i] == temp[j+1])//wordIn is now bigger" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j+1]: " << temp[j+1] << endl;
+								strike++;
+								matches++;
+								j++;
+								//j++;//////////////////////////////////////////////////////////
+								breakOut = 1;
+								param = 2;
+								break;
+							}
+							else
+							{
+								strike++;
+								cout << "else -> straight strike" << endl;
+								if (strike == 2)
+								{
+									matches = 0;
+									break;
+								}
+							}
+							j++;
+							cout << "bottom of FOR wordIn " << wordIn << ", temp " << temp << ", strike: " << strike << ", Matches: " << matches << endl;
+							cout << "TEMPSIZE: " << tempSize << ", WORDSIZEIN: " << wordInSize << ", MATCHES: " << matches << endl;
+							if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+							{
+								if (matches != wordInSize - 1 && matches != wordInSize)
+								{
+									cout << "In miss IF statement!!!!!!!!!!" << endl;
+									param = 4;
+									breakOut = 0;
+									strike++;
+									break;
+								}
+								else
+								{
+									cout <<"OTHER THING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+									param = 4;
+									breakOut = 0;
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+							}
+						}
+						if (wordInSize == 3 && tempSize == 3)
+						{
+							if ((wordIn[0] == temp[0] && wordIn[2] == temp[2] || wordIn[1] == temp[1]) || (wordIn[0] == temp[0] && wordIn[1] == temp[2] && wordIn[2] == temp[1]))
+							{
+								param = 4;
+								breakOut = 0;
+							}
+							else
+							{
+								param = 4;
+								breakOut = 0;
+								strike++;
+							}	
+						}
+						if (wordInSize == 4 && tempSize == 4)
+						{
+							if ((wordIn[0] == temp[0] && (wordIn[2] == temp[2] || wordIn[1] == temp[1]) && temp[3] == wordIn[3]) || ((wordIn[0] == temp[0] && wordIn[1] == temp[2] && wordIn[2] == temp[1]) && temp[3] == wordIn[3]))
+							{
+								param = 4;
+								breakOut = 0;
+							}
+							else
+							{
+								param = 4;
+								breakOut = 0;
+								strike++;
+							}
+						}
 						if (strike >= 2)
+						{
+							cout << "if (strike >= 2)" << endl;
+							param = 4;
+							breakOut = 0;
 							break;
+						}
+						cout << "OUT OF FOR, Strikes: " << strike << endl;
 					}
-					if (strike = 1)
+					break;
+					case 2://wordIn bigger
 					{
-						//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-						possibleCorrects += temp;
-						win++;
-					}
+						cout << "i: " << i << ", J: " << j << endl;
+						cout << "Case 2222222222222222222 " << wordIn << " " << temp << endl;
+						cout  <<"i: " << i << endl;
+						for (; i < wordInSize; i++)
+						{
+							cout << "TOP OF FOR wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+							if (wordIn[i] == temp[j])//match!
+							{
+								cout << "if (wordIn[i] == temp[j])//match!" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								matches++;
+								breakOut = 0;
+							}
+							else if (wordIn[i] == temp[j + 1] && wordIn[i + 1] == temp[j])//special
+							{
+								
+								/*
+								if (wordIn[i - 1] == temp[j - 1] && wordIn[i + 1] == temp[j + 1])
+								{
+									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
 
+									strike++;
+								}
+								else
+								*/
+								{
+									i++;
+									i++;
+									//j++;
+									//j++;
+									j++;
+									j++;
+									strike++;
+									matches++;
+									matches++;
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+
+								cout << "SPECIAL:::::::::::::::::::::::::: i: " << i << " " << wordIn[i] << ", j: " << j << temp[j] << " " << ", param: " << param << endl;
+							}
+							else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+							{
+								cout << "else if (wordIn[i + 1] == temp[j])//wordIn is now shorter" << endl;
+								cout << "wordIn[i+1]: " << wordIn[i+1] << ", temp[j]: " << temp[j] << endl;
+								strike++;
+								matches++;
+								i++;
+								//i++;
+								breakOut = 1;
+								param = 3;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								break;
+							}
+							else if (wordIn[i] == temp[j+1])//wordIn is now bigger
+							{
+								cout << "else if (wordIn[i] == temp[j+1])//wordIn is now bigger" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j+1]: " << temp[j+1] << endl;
+								strike++;
+								matches++;
+								j++;
+								//j++;
+								//i++;
+								breakOut = 1;
+								param = 2;
+								break;
+							}
+							else
+							{
+								strike++;
+								cout << "else -> straight strike" << endl;
+								if (strike == 2)
+								{
+									matches = 0;
+									break;
+								}
+							}
+							j++;
+							cout << "bottom of FOR wordIn " << wordIn << ", temp " << temp << ", strike: " << strike << endl;
+							cout << "TEMPSIZE: " << tempSize << ", WORDSIZEIN: " << wordInSize << ", MATCHES: " << matches << endl;
+							if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+							{
+								if (matches != wordInSize - 1 && matches != wordInSize)
+								{
+									cout << "In miss IF statement!!!!!!!!!!" << endl;
+									param = 4;
+									breakOut = 0;
+									strike++;
+									break;
+								}
+								else
+								{
+									cout << "OTHER THING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+									if (wordInSize == 3 && tempSize == 2)
+									{
+										if ((wordIn[0] == temp[0] && wordIn[1] == temp[1] || wordIn[2] == temp[1]) || (wordIn[0] == temp[1] && wordIn[1] == temp[0]))
+										{
+											param = 4;
+											breakOut = 0;
+										}
+										else
+										{
+											param = 4;
+											breakOut = 0;
+											strike++;
+										}
+									}
+									else if (j == tempSize)
+									{
+										strike++;
+										break;
+									}
+									else
+									{
+										param = 4;
+										breakOut = 0;
+									}
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+							}
+						}
+						if (strike >= 2)
+							{
+								cout << "if (strike >= 2)" << endl;
+								param = 4;
+								breakOut = 0;
+								break;
+							}
+						cout << "OUT OF FOR, Strikes: " << strike << endl;
+					}
+					break;
+					case 3://wordIn smaller
+					{
+						cout << "i: " << i << ", J: " << j << endl;
+						cout << "Case 33333333333333333333333333 " << wordIn << " " << temp << endl;
+						cout << "i: " << i << endl;
+						for (; i < wordInSize; i++)
+						{
+							cout << "TOP OF FOR wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+							if (wordIn[i] == temp[j])//match!
+							{
+								cout << "if (wordIn[i] == temp[j])//match!" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								matches++;
+								breakOut = 0;
+							}
+							else if (wordIn[i] == temp[j + 1] && wordIn[i + 1] == temp[j])//special
+							{
+								
+								/*
+								if (wordIn[i - 1] == temp[j - 1] && wordIn[i + 1] == temp[j + 1])
+								{
+									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+									
+									strike++;
+								}
+								else
+								*/
+								{
+									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								//	i++;
+									//i++;
+									j++;
+									//j++;
+									//j++;
+									//j++;
+									strike++;
+									matches++;
+									matches++;
+									cout << "HERE WE ARE!!!!!!!!!!!!!!!!!!!wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+								
+								cout << "SPECIAL:::::::::::::::::::::::::: i: " << i << " " << wordIn[i] << ", j: " << j << temp[j] << " " << ", param: " << param << endl;
+							}
+							else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+							{
+								cout << "else if (wordIn[i + 1] == temp[j])//wordIn is now shorter" << endl;
+								cout << "wordIn[i+1]: " << wordIn[i+1] << ", temp[j]: " << temp[j] << endl;
+								strike++;
+								matches++;
+								i++;
+								//i++;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								//breakOut = 1;
+								//param = 3
+								break;
+							}
+							else if (wordIn[i] == temp[j + 1])//wordIn is now same size
+							{
+								cout << "else if (wordIn[i] == temp[j+1])//wordIn is now same size" << endl;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j+1]: " << temp[j+1] << endl;
+								strike++;
+								matches++;
+								j++;
+								//j++;
+								//i++;
+								breakOut = 1;
+								param = 1;
+								cout << "wordIn[i]: " << wordIn[i] << ", temp[j]: " << temp[j] << endl;
+								break;
+							}
+							else
+							{
+								strike++;
+								cout << "else -> straight strike" << endl;
+								if (strike == 2)
+								{
+									matches = 0;
+									break;
+								}
+							}
+							j++;
+							cout << "bottom of FOR wordIn " << wordIn << ", temp " << temp << ", strike: " << strike << endl;
+							cout << "TEMPSIZE: " << tempSize << ", WORDSIZEIN: " << wordInSize << ", MATCHES: " << matches << endl;
+							if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+							{
+								if (matches != wordInSize - 1 && matches != wordInSize)
+								{
+									cout << "In miss IF statement!!!!!!!!!!" << endl;
+									param = 4;
+									breakOut = 0;
+									//strike++;
+									break;
+								}
+								else
+								{
+									cout << "OTHER THING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+								/*	if(tempSize == j)
+									{
+										param = 4;
+										breakOut = 0;
+										strike++;
+									}
+									else
+								*/	{
+										param = 4;
+										breakOut = 0;
+									}
+									if (strike == 2)
+									{
+										matches = 0;
+										break;
+									}
+								}
+							}
+						}
+						if (strike >= 2)
+							{
+								cout << "if (strike >= 2)" << endl;
+								param = 4;
+								breakOut = 0;
+								break;
+							}
+						cout << "OUT OF FOR, Strikes: " << strike << endl;
+					}
+					break;
 				}
+				if (i == wordInSize || j == tempSize)
+					param = 4;
+			}while(param != 4);
+		}
+		if (strike == 1)
+		{
+			if((matches == tempSize || matches ==  tempSize+1 || matches == tempSize-1) && (matches == wordInSize || matches == wordInSize+1 ||  matches == wordInSize-1))
+			{
+				possibleCorrects += temp + " ";
+				wins++;
+				cout << "Wins: " << wins << " Strikes: " << strike << endl;
+				checkOutcome.emplace();
+				breakOut = 0;
 			}
 		}
 		iter++;
 	}
-	if (win ==  0)
+
+	if (wins == 0)
+	{
+		checkOutcome.emplace(possibleCorrects);
+		cout << "\n";
 		return 0;
+	}
+	checkOutcome.emplace(possibleCorrects);
+	cout << "\n";
 	return 1;
 }
 
-//searcing UNORDERED set. returns 1 if word is found in dictionary, else returns 0;
+//searching UNORDERED set. returns 1 if word is found in dictionary, else returns 0;
 bool basicSearch2(string wordIn)
 {
-	if (dictionarySet2.find(wordIn) != dictionarySet2.end())
+	if (dictionarySet2.find(wordIn) == dictionarySet2.end())
+	{
+		incorrectWords.emplace(wordIn);
 		return 1;
-
+	}
 	return 0;
 }
 //searcing UNORDERED set. follows basicSearch() if word is not found. searches in parts 
 //returns 1 if word is found in dictionary, else returns 0;
-bool secondarySearch2(string wordIn, string possibleCorrects)
+bool secondarySearch2(string wordIn)
 {
+	bool breakOut = 0;
 	int tempSize = 0;
 	int wordInSize = wordIn.size();
 	int matches = 0;
-
 	int strike = 0;
-
+	int wins = 0;
+	int j = 0;
+	int i = 0;
 	string temp;
-	unordered_set<string>::iterator iter = dictionarySet2.begin();
+	string possibleCorrects = wordIn;
+	unsigned short int param = 0;
 
+	possibleCorrects += " = ";
+	///////////////////////////change for ordered/unordered
+	unordered_set<string>::iterator iter = dictionarySet2.begin();
 	while (iter != dictionarySet2.end())
 	{
+		matches = 0;
+		strike = 0;
 		temp = *iter;
 		tempSize = temp.size();
-		if (wordInSize == tempSize || wordInSize == (tempSize + 1) || wordInSize == (tempSize - 1))
+		if (wordInSize == tempSize || ((wordInSize + 1) == tempSize) || ((wordInSize - 1) == tempSize))
 		{
-			if (wordInSize == tempSize)//sae size
+			i = 0;
+			j = 0;
+			param = 0;
+			breakOut = 0;
+			do
 			{
-				for (int i = 0; i < wordInSize; i++)
+				if (breakOut == 0 && wordInSize == tempSize)//Same size
+					param = 1;
+				if (breakOut == 0 && wordInSize > tempSize)//wordIn bigger
+					param = 2;
+				if (breakOut == 0 && wordInSize < tempSize)//wordIn smaller
+					param = 3;
+				switch (param)
 				{
-					if (wordIn[i] == temp[i])
-						/*	matches++;
-						else	*/
-						strike++;
-
-					if (strike >= 2)
-						return 0;
-				}
-				if (strike = 1)
-					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-					possibleCorrects += temp;
-			}
-			else if (wordInSize > tempSize)//wordIn bigger
-			{
-				for (int i = 0; i < tempSize; i++)
+				case 1://Same size
 				{
-					if (wordIn[i] != temp[i])
-						/*	matches++;
-						else	*/
-						strike++;
-					if (strike >= 2)
-						return 0;
-				}
-				if (strike = 1)
-					//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-					possibleCorrects += temp;
-			}
-			else
-			{
-				for (int i = 0; i < tempSize; i++)//found word bigger
-				{
-					for (int i = 0; i < wordInSize; i++)
+					for (; i < wordInSize; i++)
 					{
-						if (wordIn[i] == temp[i])
-							/*	matches++;
-							else	*/
+						if (wordIn[i] == temp[j])//match!
+						{
+							matches++;
+							breakOut = 0;
+						}
+						else if (wordIn[i] == temp[j + 1] && wordIn[i + 1] == temp[j])//special
+						{
+							i++;
+							i++;
+							j++;
+							j++;
 							strike++;
-						if (strike >= 2)
-							return 0;
+							matches++;
+							matches++;
+						}
+						else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+						{
+							strike++;
+							matches++;
+							i++;
+							i++;
+							breakOut = 1;
+							param = 3;
+							break;
+						}
+						else if (wordIn[i] == temp[j + 1])//wordIn is now bigger
+						{
+							strike++;
+							matches++;
+							j++;
+							breakOut = 1;
+							param = 2;
+							break;
+						}
+						else
+						{
+							strike++;
+							if (strike == 2)
+							{
+								matches = 0;
+								break;
+							}
+						}
+						j++;
+						if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+						{
+							if (matches != wordInSize - 1 && matches != wordInSize)
+							{
+								param = 4;
+								breakOut = 0;
+								strike++;
+								break;
+							}
+							else
+							{
+								param = 4;
+								breakOut = 0;
+							}
+						}
 					}
-					if (strike = 1)
-						//if (matches == (wordInSize - 1) || matches == wordInSize + 1)
-						possibleCorrects += temp;
+					if (wordInSize == 3 && tempSize == 3)
+					{
+						if ((wordIn[0] == temp[0] && wordIn[2] == temp[2] || wordIn[1] == temp[1]) || (wordIn[0] == temp[0] && wordIn[1] == temp[2] && wordIn[2] == temp[1]))
+						{
+							param = 4;
+							breakOut = 0;
+						}
+						else
+						{
+							param = 4;
+							breakOut = 0;
+							strike++;
+						}
+					}
+					if (wordInSize == 4 && tempSize == 4)
+					{
+						if ((wordIn[0] == temp[0] && (wordIn[2] == temp[2] || wordIn[1] == temp[1]) && temp[3] == wordIn[3]) || ((wordIn[0] == temp[0] && wordIn[1] == temp[2] && wordIn[2] == temp[1]) && temp[3] == wordIn[3]))
+						{
+							param = 4;
+							breakOut = 0;
+						}
+						else
+						{
+							param = 4;
+							breakOut = 0;
+							strike++;
+						}
+					}
+					if (strike >= 2)
+					{
+						param = 4;
+						breakOut = 0;
+						break;
+					}
 				}
+				break;
+				case 2://wordIn bigger
+				{
+					for (; i < wordInSize; i++)
+					{
+						if (wordIn[i] == temp[j])//match!
+						{
+							matches++;
+							breakOut = 0;
+						}
+						else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+						{
+							strike++;
+							matches++;
+							i++;
+							i++;
+							breakOut = 1;
+							param = 3;
+							break;
+						}
+						else if (wordIn[i] == temp[j + 1])//wordIn is now bigger
+						{
+							strike++;
+							matches++;
+							j++;
+							j++;
+							i++;
+							breakOut = 1;
+							param = 2;
+							break;
+						}
+						else
+						{
+							strike++;
+							if (strike == 2)
+							{
+								matches = 0;
+								break;
+							}
+						}
+						j++;
+						if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+						{
+							if (matches != wordInSize - 1 && matches != wordInSize)
+							{
+								param = 4;
+								breakOut = 0;
+								strike++;
+								break;
+							}
+							else
+							{
+								param = 4;
+								breakOut = 0;
+							}
+						}
+					}
+					if (strike >= 2)
+					{
+						param = 4;
+						breakOut = 0;
+						break;
+					}
+				}
+				break;
+				case 3://wordIn smaller
+				{
+					for (; i < wordInSize; i++)
+					{
+						if (wordIn[i] == temp[j])//match!
+						{
+							matches++;
+							breakOut = 0;
+						}
+						else if (wordIn[i + 1] == temp[j])//wordIn is now shorter
+						{
+							strike++;
+							matches++;
+							i++;
+							i++;
+							break;
+						}
+						else if (wordIn[i] == temp[j + 1])//wordIn is now same size
+						{
+							strike++;
+							matches++;
+							j++;
+							j++;
+							i++;
+							breakOut = 1;
+							param = 1;
+							break;
+						}
+						else
+						{
+							strike++;
+							if (strike == 2)
+							{
+								matches = 0;
+								break;
+							}
+						}
+						j++;
+						if ((j == tempSize && i != wordInSize) || (i == wordInSize && j != tempSize))
+						{
+							if (matches != wordInSize - 1 && matches != wordInSize)
+							{
+								param = 4;
+								breakOut = 0;
+								strike++;
+								break;
+							}
+							else
+							{
+								param = 4;
+								breakOut = 0;
+							}
+						}
+					}
+					if (strike >= 2)
+					{
+						param = 4;
+						breakOut = 0;
+						break;
+					}
+				}
+				break;
+				}
+				if (i == wordInSize || j == tempSize)
+					param = 4;
+			} while (param != 4);
+		}
+		if (strike == 1)
+		{
+			if ((matches == tempSize || matches == tempSize + 1 || matches == tempSize - 1) && (matches == wordInSize || matches == wordInSize + 1 || matches == wordInSize - 1))
+			{
+				possibleCorrects += temp + " ";
+				wins++;
+				checkOutcome.emplace();
+				breakOut = 0;
 			}
 		}
 		iter++;
 	}
+
+	if (wins == 0)
+	{
+		checkOutcome.emplace(possibleCorrects);
+		return 0;
+	}
+	checkOutcome.emplace(possibleCorrects);
 	return 1;
 }
 
@@ -440,7 +1175,6 @@ void createDictionary(ifstream &inFile, set <string> &dictionarySet)
 
 	while (!inFile.eof())
 	{
-		cout << "big arse file? wordCount: " << wordCount << " " << newWord << "\n";
 		//Acquire words from file - BEGIN
 		newWord = fileIterator(inFile, delim);
 		dictionarySet.emplace(newWord);
@@ -453,7 +1187,7 @@ void createDictionary(ifstream &inFile, set <string> &dictionarySet)
 void createcheckFileVector(ifstream &inFile, vector <string> &vector)
 {
 	int wordCount = 0;
-	string newWord = "first";
+	string newWord = "I don't count either...";
 	char delim = ' ';
 	string term1, term2, term3;
 	int multiterm = 0;
@@ -466,16 +1200,26 @@ void createcheckFileVector(ifstream &inFile, vector <string> &vector)
 
 		newWord = term1;
 		voidLowerCase(newWord);
+		
+		for (int i = 0; i < newWord.size(); i++)//trims trailing whitespace...
+		{
+			if (newWord[i] == 10)//removes trailing whitespace
+			{
+				string temp;
+				int size = newWord.size() - 1;
+				for (int j = 0; j < size; j++)
+				temp += newWord[j];
+				newWord = temp;
+			}
+		}
 		checkFileVector.push_back(newWord);
 		wordCount++;
-//		cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
 		if (multiterm == 2)
 		{
 			newWord = term2;
 			voidLowerCase(newWord);
 			checkFileVector.push_back(newWord);
 			wordCount++;
-//			cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
 		}
 		if (multiterm == 3)
 		{
@@ -483,9 +1227,7 @@ void createcheckFileVector(ifstream &inFile, vector <string> &vector)
 			voidLowerCase(newWord);
 			checkFileVector.push_back(newWord);
 			wordCount++;
-		//	cout << "checkFile wordCount: " << wordCount << " newWord: " << newWord << "\n";
 		}
-		//checkFileVector.push_back(newWord);
 		//Acquire words from file - END
 	}
 }
@@ -508,16 +1250,13 @@ void termSplitter(string lineIn, string &term1, string &term2, string &term3, in
 		multiterm = 1;
 		i++;
 		temp = lineIn[i];
-		//cout << "Temp: " << temp << endl;
 		if (temp == "," || temp == "'" || temp == ".")
 		{
 			if (temp == "'")
 				i++;
 			
 			i++;
-		//	cout << "punctuation caught1 " << temp << "*" << endl;
 			temp = lineIn[i];
-			//cout << "punctuation caught1 " << temp << "*" << endl;
 		}
 
 		if (temp == " " || temp == "-")//remove hyphens
@@ -534,9 +1273,7 @@ void termSplitter(string lineIn, string &term1, string &term2, string &term3, in
 					if (temp == "'")
 						i++;
 					i++;
-					//cout << "punctuation caught2 " << temp << "*" << endl;
 					temp = lineIn[i];
-					//cout << "punctuation caught2 " << temp << "*" << endl;
 				}
 				
 				if (temp == " " || temp == "-")
@@ -546,7 +1283,6 @@ void termSplitter(string lineIn, string &term1, string &term2, string &term3, in
 					while (i < lineIn.size())
 					{
 						term3 += lineIn[i];
-						//lineIn[i] = ' ';
 						i++;
 						temp = lineIn[i];
 						if (temp == "," || temp == "'" || temp == ".")
@@ -555,9 +1291,7 @@ void termSplitter(string lineIn, string &term1, string &term2, string &term3, in
 							i++;
 							if (temp == "'")
 								i++;
-							//cout << "punctuation caught3 " << temp << "*" << endl;
 							temp = lineIn[i];
-						//	cout << "punctuation caught3 " << temp << "*" << endl;
 						}
 					}
 				}
@@ -572,6 +1306,7 @@ string fileIterator(istream &input, char delim)
 {
 	string newString;
 	int endFlag = 0;
+	int sheesh = 0;
 
 	getline(input, newString, delim);
 	endFlag = scrollChars(input);
