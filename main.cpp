@@ -306,10 +306,12 @@ void runSearchesUnordered()
 }
 void searchResults()
 {
+	ofstream outfile;
+	outfile.open("progOutput.txt");
 	set<string>::iterator iter = checkOutcome.begin();
 	while (iter != checkOutcome.end())
 	{
-//		cout << "\n\t\tSpelling issues!\n"
+		outfile << *iter << endl;
 		cout <<"\t\tcheckOutcome: " << *iter << endl;
 		iter++;
 	}
